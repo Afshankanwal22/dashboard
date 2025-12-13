@@ -4,9 +4,11 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Hando — Pro Animated Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 <!-- Tailwind CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
+
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -43,9 +45,22 @@
   .client-row:hover { background: rgba(59,130,246,0.03); }
   /* responsive canvas heights */
   canvas { max-height:300px; }
+
+  /* Smooth slide in/out for sidebar */
+.sidebar {
+  transition: left 0.3s ease-in-out;
+}
 </style>
 </head>
 <body class="min-h-screen text-gray-700 dark:text-gray-200">
+  <!-- HAMBURGER BUTTON FOR MOBILE -->
+<button id="mobileSidebarBtn" class="lg:hidden p-2 rounded-lg bg-gray-200 dark:bg-gray-700 fixed top-4 left-4 z-50">
+  ☰
+</button>
+
+<!-- OVERLAY FOR MOBILE -->
+<div id="overlay" class="hidden fixed inset-0 bg-black bg-opacity-30 z-40 lg:hidden"></div>
+
 
 <div class="flex">
 
@@ -59,12 +74,37 @@
       </div>
     </div>
 
-    <nav class="flex-1 space-y-1">
-      <a class="flex items-center gap-3 p-2 rounded-lg hover:bg-primary/6 dark:hover:bg-primary/10 transition-colors link-ripple" href="#"><span class="text-xl">🏠</span><span class="nav-label opacity-0">Dashboard</span></a>
-      <a class="flex items-center gap-3 p-2 rounded-lg hover:bg-primary/6 dark:hover:bg-primary/10 transition-colors link-ripple" href="#"><span class="text-xl">👥</span><span class="nav-label opacity-0">Clients</span></a>
-      <a class="flex items-center gap-3 p-2 rounded-lg hover:bg-primary/6 dark:hover:bg-primary/10 transition-colors link-ripple" href="#"><span class="text-xl">📦</span><span class="nav-label opacity-0">Products</span></a>
-      <a class="flex items-center gap-3 p-2 rounded-lg hover:bg-primary/6 dark:hover:bg-primary/10 transition-colors link-ripple" href="#"><span class="text-xl">📈</span><span class="nav-label opacity-0">Analytics</span></a>
-    </nav>
+ <nav class="flex-1 space-y-1">
+  <!-- Dashboard -->
+  <a class="flex items-center gap-3 p-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900 transition-colors" href="#">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h7v7H3V3zM14 3h7v7h-7V3zM3 14h7v7H3v-7zM14 14h7v7h-7v-7z"/>
+    </svg>
+    <span>Dashboard</span>
+  </a>
+
+  <!-- Clients -->
+  <a class="flex items-center gap-3 p-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900 transition-colors" href="#">
+  <i class="fa-regular fa-user text-indigo-600"></i>
+
+    <span>Clients</span>
+  </a>
+
+  <!-- Products -->
+  <a class="flex items-center gap-3 p-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900 transition-colors" href="#">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V5a2 2 0 00-2-2H6a2 2 0 00-2 2v8m16 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0H4"/>
+    </svg>
+    <span>Products</span>
+  </a>
+
+  <!-- Analytics -->
+  <a class="flex items-center gap-3 p-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-900 transition-colors" href="#">
+        <i class="fas fa-chart-line text-indigo-600 w-5"></i>
+    <span>Analytics</span>
+  </a>
+</nav>
+
 
     <div class="text-xs text-gray-400 dark:text-gray-500 opacity-0 nav-label">© 2025 Hando</div>
   </aside>
@@ -76,7 +116,7 @@
     <div class="flex justify-between items-center mb-6">
       <div>
         <h1 class="text-lg font-semibold">Good Morning, Alex</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Here's what's happening with your store today</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 ">Here's what's happening with your store today</p>
       </div>
       <div class="flex items-center gap-3">
         <div class="relative">
@@ -85,10 +125,21 @@
         </div>
 
         <button id="modeToggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700" title="Toggle theme"><span id="modeIcon">🌙</span></button>
-
+        
         <div class="relative">
-          <button class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700">🔔 <span class="ml-1 text-xs bg-red-500 text-white rounded-full px-1">9</span></button>
-        </div>
+  <button id="notifyBtn"
+    class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 relative">
+    <i class="fa-regular fa-bell"></i>
+    <span id="notifyCount"
+      class="absolute -top-1 -right-1 text-xs bg-red-500 text-white rounded-full px-1">
+      9
+    </span>
+  </button>
+</div>
+
+<!-- Toast Container -->
+<div id="toastContainer" class="fixed top-5 right-5 flex flex-col gap-3 z-50"></div>
+
 
         <div class="relative group">
           <img src="https://i.pravatar.cc/40" class="w-10 h-10 rounded-full" />
@@ -103,38 +154,48 @@
 
     <!-- KPI CARDS -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm card-glow">
+      <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm card-glow ard-glow 
+            transition-transform transform hover:scale-105 hover:shadow-lg">
         <p class="text-sm text-gray-500">Overall Orders</p>
         <div class="flex items-baseline justify-between mt-2">
           <div><div class="text-2xl font-bold kpi-number" data-target="57800">0</div><div class="text-xs text-green-500">+12.5%</div></div>
-          <div class="text-2xl">💰</div>
+          <div class="text-2xl">  <i class="fas fa-shopping-cart text-indigo-600"></i>
+</div>
         </div>
         <div class="mt-3 bg-gray-200 dark:bg-gray-700 h-2 rounded overflow-hidden progress-animated" style="--w:60%"><div class="bg-primary h-2"></div></div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm card-glow">
+      <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm card-gloward-glow 
+            transition-transform transform hover:scale-105 hover:shadow-lg ">
         <p class="text-sm text-gray-500">Monthly Orders</p>
         <div class="flex items-baseline justify-between mt-2">
           <div><div class="text-2xl font-bold kpi-number" data-target="25548">0</div><div class="text-xs text-green-500">+8.2%</div></div>
-          <div class="text-2xl">👥</div>
+          <div class="text-2xl"><i class="fa-regular fa-user text-indigo-600"></i></div>
         </div>
         <div class="mt-3 bg-gray-200 dark:bg-gray-700 h-2 rounded overflow-hidden progress-animated" style="--w:80%"><div class="bg-primary h-2"></div></div>
       </div>
 
-      <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm card-glow">
+      <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm card-glow ard-glow 
+            transition-transform transform hover:scale-105 hover:shadow-lg">
         <p class="text-sm text-gray-500">Monthly Revenue</p>
         <div class="flex items-baseline justify-between mt-2">
           <div><div class="text-2xl font-bold kpi-number" data-target="637254">$0</div><div class="text-xs text-green-500">+12.5%</div></div>
-          <div class="text-2xl">💵</div>
+          <div class="text-2xl">  <i class="fas fa-dollar-sign text-green-500"></i>
+</div>
         </div>
         <div class="mt-3 bg-gray-200 dark:bg-gray-700 h-2 rounded overflow-hidden progress-animated" style="--w:66%"><div class="bg-primary h-2"></div></div>
+       
       </div>
 
-      <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm card-glow">
+      <div class="bg-white dark:bg-gray-800 p-5 rounded-2xl shadow-sm card-glow ard-glow 
+            transition-transform transform hover:scale-105 hover:shadow-lg">
         <p class="text-sm text-gray-500">Out of Stock</p>
         <div class="flex items-baseline justify-between mt-2">
           <div><div class="text-2xl font-bold kpi-number" data-target="142">0</div><div class="text-xs text-red-500">-3.2%</div></div>
-          <div class="text-2xl">📦</div>
+          <div class="text-2xl"><i class="fas fa-triangle-exclamation text-red-500"></i>
+
+
+</div>
         </div>
         <div class="mt-3 bg-gray-200 dark:bg-gray-700 h-2 rounded overflow-hidden progress-animated" style="--w:33%"><div class="bg-red-500 h-2"></div></div>
       </div>
@@ -180,7 +241,7 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-              <tr class="row-anim">
+              <tr class="row">
                 <td class="px-3 py-2">#4587</td>
                 <td class="px-3 py-2">Emma Johnson</td>
                 <td class="px-3 py-2">Wireless Headphones</td>
@@ -188,7 +249,7 @@
                 <td class="px-3 py-2">$125.00</td>
                 <td class="px-3 py-2">12 Dec 2025</td>
               </tr>
-              <tr class="row-anim">
+              <tr class="row">
                 <td class="px-3 py-2">#4588</td>
                 <td class="px-3 py-2">John Doe</td>
                 <td class="px-3 py-2">Smart Watch</td>
@@ -196,7 +257,7 @@
                 <td class="px-3 py-2">$199.00</td>
                 <td class="px-3 py-2">12 Dec 2025</td>
               </tr>
-              <tr class="row-anim">
+              <tr class="row">
                 <td class="px-3 py-2">#4589</td>
                 <td class="px-3 py-2">Alice Smith</td>
                 <td class="px-3 py-2">Laptop Bag</td>
@@ -256,6 +317,75 @@ modeToggle.addEventListener('click', () => {
   modeIcon.textContent = isDark ? '☀️' : '🌙';
 });
 
+const btn = document.getElementById("notifyBtn");
+const toastContainer = document.getElementById("toastContainer");
+const countBadge = document.getElementById("notifyCount");
+
+// Sample notifications (9 as in badge)
+let notifications = [
+  "🔔 New order received",
+  "👤 New user registered",
+  "💰 Payment successful",
+  "⚠ Server warning",
+  "📦 Order shipped",
+  "✉ New message received",
+  "⭐ New review added",
+  "📈 Sales report ready",
+  "💡 Tips for growth"
+];
+
+// Update badge
+countBadge.innerText = notifications.length;
+
+// Show a toast
+function showToast(message, index) {
+  const toast = document.createElement("div");
+  toast.className = "bg-white dark:bg-gray-800 text-gray-800 dark:text-white p-4 rounded-lg shadow-lg flex justify-between items-start w-72 transform transition-all duration-300 opacity-0 translate-x-20";
+  toast.innerHTML = `<span>${message}</span><button class="ml-2 text-gray-400 hover:text-red-500 font-bold">×</button>`;
+
+  // Remove button
+  toast.querySelector("button").addEventListener("click", () => removeToast(toast, index));
+
+  // Append toast at the bottom
+  toastContainer.appendChild(toast);
+
+  // Animate in
+  setTimeout(() => {
+    toast.classList.remove("opacity-0","translate-x-20");
+  },100);
+}
+
+// Remove toast and shift remaining
+function removeToast(toast, index){
+  toast.classList.add("opacity-0","translate-x-20");
+  toast.addEventListener("transitionend", ()=>{
+    toast.remove();
+  });
+  // Remove from notifications array and update badge
+  if(notifications[index]) notifications.splice(index,1);
+  countBadge.innerText = notifications.length;
+}
+
+// Show all notifications on bell click
+btn.addEventListener("click", () => {
+  notifications.forEach((msg,index) => showToast(msg,index));
+  notifications = []; // clear after showing
+  countBadge.innerText = 0;
+});
+
+const mobileSidebarBtn = document.getElementById('mobileSidebarBtn');
+
+
+mobileSidebarBtn.addEventListener('click', () => {
+  if(sidebar.classList.contains('left-[-18rem]')){
+    sidebar.classList.remove('left-[-18rem]');
+    sidebar.classList.add('left-0');
+  } else {
+    sidebar.classList.add('left-[-18rem]');
+    sidebar.classList.remove('left-0');
+  }
+});
+
 /* ---------------------------
    Sidebar expand labels
 ----------------------------*/
@@ -303,6 +433,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   document.querySelectorAll('.row-anim').forEach((r,i)=>{ r.style.animationDelay = (i*80)+'ms'; });
 });
 
+
 /* ---------------------------
    Client List (dynamic add)
 ----------------------------*/
@@ -312,42 +443,72 @@ const clients = [
   {id:3,name:'Sophia Davis',email:'sophia@shops.com',company:'ShopEase',status:'Pending',joined:'2025-01-22', avatar:'https://i.pravatar.cc/40?img=8'},
   {id:4,name:'Daniel Wilson',email:'daniel@tech.com',company:'Tekno',status:'Blocked',joined:'2022-08-19', avatar:'https://i.pravatar.cc/40?img=3'}
 ];
+
 const clientTbody = document.getElementById('clientTbody');
+
 function renderClients(){
   clientTbody.innerHTML = '';
+
   clients.forEach((c,i)=>{
     const tr = document.createElement('tr');
-    tr.className = 'client-row row-anim';
+    tr.className = 'row hover:bg-gray-50 dark:hover:bg-gray-800 transition';
+
     tr.innerHTML = `
       <td class="px-3 py-2">${i+1}</td>
+
       <td class="px-3 py-2 flex items-center gap-3">
-        <img src="${c.avatar}" class="avatar" alt="${c.name}" />
-        <div>
-          <div class="font-semibold">${c.name}</div>
-        </div>
+        <img src="${c.avatar}" class="w-9 h-9 rounded-full" />
+        <div class="font-semibold">${c.name}</div>
       </td>
-      <td class="px-3 py-2">${c.email}</td>
+
+      <td class="px-3 py-2 text-gray-500">${c.email}</td>
       <td class="px-3 py-2">${c.company}</td>
+
       <td class="px-3 py-2">${statusBadge(c.status)}</td>
-      <td class="px-3 py-2">${formatDate(c.joined)}</td>
+      <td class="px-3 py-2 text-gray-500">${formatDate(c.joined)}</td>
     `;
     clientTbody.appendChild(tr);
   });
-  // stagger animation delay for new rows
-  document.querySelectorAll('.row-anim').forEach((r,i)=> r.style.animationDelay = (i*80)+'ms');
+
+  document.querySelectorAll('.row-anim').forEach((r,i)=>{
+    r.style.animationDelay = (i * 80) + 'ms';
+  });
 }
-function statusBadge(s){
-  if(s==='Active') return '<span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Active</span>';
-  if(s==='Pending') return '<span class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-800">Pending</span>';
-  return '<span class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">Blocked</span>';
+
+function statusBadge(status){
+  if(status === 'Active')
+    return `<span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">Active</span>`;
+  if(status === 'Pending')
+    return `<span class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700">Pending</span>`;
+  return `<span class="px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">Blocked</span>`;
 }
-function formatDate(d){ const dt = new Date(d); return dt.toLocaleDateString(); }
+
+function formatDate(date){
+  return new Date(date).toLocaleDateString();
+}
+
 renderClients();
-document.getElementById('addClientBtn').addEventListener('click', ()=>{
-  const id = clients.length + 1;
-  clients.unshift({id,name:`New Client ${id}`,email:`new${id}@example.com`,company:'NewCo',status:'Pending',joined:new Date().toISOString().slice(0,10),avatar:`https://i.pravatar.cc/40?img=${Math.floor(1+Math.random()*70)}`});
-  renderClients();
-});
+
+/* ✅ Add Client Button */
+const addBtn = document.getElementById('addClientBtn');
+if(addBtn){
+  addBtn.addEventListener('click', ()=>{
+    const id = clients.length + 1;
+
+    clients.unshift({
+      id: id,
+      name: `New Client ${id}`,
+      email: `new${id}@example.com`,
+      company: 'NewCo',
+      status: 'Pending',
+      joined: new Date().toISOString().slice(0,10),
+      avatar: `https://i.pravatar.cc/40?img=${Math.floor(Math.random()*70)+1}`
+    });
+
+    renderClients();
+  });
+}
+
 
 /* ---------------------------
    Chart: Option D (Fade + Slide + Grow + Glow)
@@ -533,6 +694,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   
 });
 </script>
+<script src="https://unpkg.com/heroicons@2.0.18/dist/heroicons.min.js"></script>
+
 
 </body>
 </html>
