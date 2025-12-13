@@ -1,0 +1,27 @@
+
+
+
+
+  :root { --bg:#f3f4f6; --card:#fff; }
+  .dark { --bg:#0b1220; --card:#0f1724; }
+
+  html,body { background:var(--bg); }
+  .sidebar { width:72px; transition: width .28s cubic-bezier(.2,.9,.3,1); overflow:hidden; }
+  .sidebar.expanded { width:18rem; }
+  .nav-label { transition: opacity .22s, transform .22s; }
+  .row-anim { opacity:0; transform:translateY(12px); animation: slideUp 520ms cubic-bezier(.2,.9,.3,1) forwards; }
+  .card-glow { transition: box-shadow .22s; }
+  .chart-card:hover canvas { box-shadow: 0 10px 30px rgba(59,130,246,0.12); border-radius:12px; }
+  /* KPI counter monospace look */
+  .kpi-number { font-variant-numeric:tabular-nums; }
+  /* small avatar */
+  .avatar { width:36px; height:36px; border-radius:8px; object-fit:cover; }
+  /* client row hover */
+  .client-row:hover { background: rgba(59,130,246,0.03); }
+  /* responsive canvas heights */
+  canvas { max-height:300px; }
+
+  /* Smooth slide in/out for sidebar */
+.sidebar {
+  transition: left 0.3s ease-in-out;
+}
